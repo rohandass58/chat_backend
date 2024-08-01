@@ -1,1 +1,11 @@
 venv
+interest_app_backend/chat/__pycache__/
+interest_app_backend/chat/migrations/__pycache__/
+interest_app_backend/interests/migrations/__pycache__/
+interest_app_backend/users/__pycache__/
+interest_app_backend/users/migrations/__pycache__/
+interest_app_backend/interests/__pycache__/
+interest_app_backend/interest_app_backend/__pycache__/
+interest_app_backend/interest_app_backend/__pycache__/
+interest_app_backend/interest_app_backend/__pycache__/settings.cpython-310.pyc
+interest_app_backend/interest_app_backend/__pycache__/__init__.cpython-310.pyc
