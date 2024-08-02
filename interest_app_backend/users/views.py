@@ -3,10 +3,11 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
-from .serializers import UserRegistrationSerializer, LoginSerializer
+from .serializers import UserRegistrationSerializer, LoginSerializer, UserSerializer
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from django.views.decorators.csrf import csrf_exempt
+from .models import *
 
 
 # User Registration API
@@ -67,3 +68,15 @@ class LogoutAPI(generics.GenericAPIView):
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserList(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user_id = request.user.id
+        user_list = CustomUser.objects.all().exclude(
+            id=user_id
+        )  # Exclude the logged-in user
+        serializer = UserSerializer(user_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

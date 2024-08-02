@@ -41,3 +41,12 @@ class LoginSerializer(serializers.Serializer):
 
         data["user"] = user
         return data
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = [
+            "id",
+            "phone_number",
+        ]  # Add other fields as needed
