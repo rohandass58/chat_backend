@@ -25,4 +25,8 @@ urlpatterns = [
         "api/",
         include("users.urls"),
     ),
+    path(
+        "message/",
+        include("interests.urls"),
+    ),
 ]

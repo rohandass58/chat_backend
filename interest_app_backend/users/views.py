@@ -7,7 +7,9 @@ from .serializers import UserRegistrationSerializer, LoginSerializer, UserSerial
 from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from django.views.decorators.csrf import csrf_exempt
-from .models import *
+from .models import CustomUser
+from interests.models import Interest
+from django.db.models import Prefetch  # Correctly importing Prefetch
 
 
 # User Registration API
@@ -32,8 +34,6 @@ class RegisterAPI(generics.GenericAPIView):
 
 
 # User Login API
-
-
 class LoginAPI(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [permissions.AllowAny]
@@ -57,26 +57,44 @@ class LoginAPI(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Logout API
 class LogoutAPI(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         try:
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            return Response(status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            refresh_token = request.data.get("refresh")
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+                return Response(status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {"detail": "Refresh token is required."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except TokenError:
+            return Response(
+                {"detail": "Invalid refresh token."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
 
-class UserList(generics.GenericAPIView):
+# User List API
+class UserListAPI(generics.ListAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request):
-        user_id = request.user.id
-        user_list = CustomUser.objects.all().exclude(
-            id=user_id
-        )  # Exclude the logged-in user
-        serializer = UserSerializer(user_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_queryset(self):
+        user = self.request.user
+        interests_prefetch = Prefetch(
+            "received_interests",
+            queryset=Interest.objects.filter(sender=user),
+            to_attr="interests_sent",
+        )
+        queryset = (
+            CustomUser.objects.all()
+            .exclude(id=self.request.user.id)
+            .prefetch_related(interests_prefetch)
+        )
+        return queryset
