@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "chat",
     "interests",
     "rest_framework",
+    "channels",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -73,7 +75,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "interest_app_backend.wsgi.application"
+# WSGI_APPLICATION = "interest_app_backend.wsgi.application"
+ASGI_APPLICATION = "interest_app_backend.asgi.application"
 
 
 # Database
@@ -157,3 +160,13 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     # Add other backends if you have any
 ]
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
+
+CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOW_CREDENTIALS = True
