@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from users.models import *
 from django.contrib.auth import authenticate
+from interests.serializers import InterestSerializer
+from interests.models import Interest
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -44,9 +46,33 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    sent_interest_status = serializers.SerializerMethodField()
+    received_interest_status = serializers.SerializerMethodField()
+    interest_id = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomUser
         fields = [
             "id",
             "phone_number",
-        ]  # Add other fields as needed
+            "sent_interest_status",
+            "received_interest_status",
+            "interest_id",
+        ]
+
+    def get_sent_interest_status(self, obj):
+        user = self.context["request"].user
+        interest = Interest.objects.filter(sender=user, receiver=obj).first()
+        return interest.status if interest else None
+
+    def get_received_interest_status(self, obj):
+        user = self.context["request"].user
+        interest = Interest.objects.filter(sender=obj, receiver=user).first()
+        return interest.status if interest else None
+
+    def get_interest_id(self, obj):
+        user = self.context["request"].user
+        interest = Interest.objects.filter(
+            models.Q(sender=user, receiver=obj) | models.Q(sender=obj, receiver=user)
+        ).first()
+        return str(interest.id) if interest else None
